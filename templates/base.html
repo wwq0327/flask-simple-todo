@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>任务追踪 (Flask版) 简明TODO</title></title>
+	<script type="text/javascript" src="http://img3.douban.com/js/packed_jquery.min9556435062.js"></script>  
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css" />
+    <script type="text/javascript">  
+        $(document).ready(function()  
+        {  
+            $("#divPop")  
+            .animate(  
+            {  
+                "opacity": "hide",  
+                "width": 800,  
+                "height":30 
+            },  
+            1500  
+            );  
+        });  
+    </script>  
+</head>
+<body class="page">
+
+<h1>= 任务追踪 (Flask版) = </h1>
+<hr>
+
+{% block content %} {% endblock %}
+<br />
+{% for message in get_flashed_messages() %}
+  <div id="divPop" style="background-color: #f0f0f0; border: solid 1px #000000;width: 800px; height: 30px;"><div style="text-align:center;">{{ message }}</div></div>
+{% endfor %}
+<!-- footer -->
+<hr>
+<div id="poweredby">
+Copyright (c) 2011 wwq0327. powered by: <a href="http://python.org">python</a>, <a href="http://flask.pocoo.org/">flask</a> . <a href="https://bitbucket.org/wwq0327/flask-simple-todo">工程地址</a>
+</div>
+<br />
+</body>
+</html>

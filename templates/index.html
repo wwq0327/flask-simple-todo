@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>== 待办 ==</h2>
+{% if todo %}
+    <ol>
+    {% for t in todo %}
+    {% if t.status==False %}
+            <li>{{ t.title|safe }} <sup>:: <a href="/{{ t.id }}/del" >删除</a> | <a href="/{{ t.id }}/edit"> 修改</a> | 
+            <a href="/{{ t.id }}/done" >完成</a></sup> </li>
+    {% endif %}
+    {% endfor %}
+    </ol>
+{% else %}
+    <b>暂时无记录</b>
+{% endif %}
+<h2>== 完成 ==</h2>
+{% if todo %}
+    <ol>
+    {% for t in todo %}
+    {% if t.status==True %}
+    <li><del>{{ t.title|safe }}</del> <sup>:: <a href="/{{ t.id }}/del" >删除</a> | <a href="/{{ t.id }}/redo" >重置</a></sup> </li>
+    {% endif %}
+    {% endfor %}
+    </ol>
+{% else %}
+    <b>暂时无记录</b>
+{% endif %}
+<h2> == 追加 ==</h2>
+<form action="." method="post">
+{{ form.csrf }}
+{{ form.title(size=100) }}
+<button type="submit">更新</button>
+</form>
+{% endblock %}

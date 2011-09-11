@@ -1,0 +1,920 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to Todo for Flask’s documentation! &mdash; flask-simple-todo v0.1 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="flask-simple-todo v0.1 documentation" href="#" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="#">flask-simple-todo v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="welcome-to-todo-for-flask-s-documentation">
+<h1>Welcome to Todo for Flask&#8217;s documentation!<a class="headerlink" href="#welcome-to-todo-for-flask-s-documentation" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="todo">
+<h1>介绍 Todo<a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h1>
+<p>看着高手们用不同的Web框架实现了这个小应用，而我这样的新手正在学习Flask，就拿来练下手了，他们用不同的框架所实现的应用：</p>
+<ul class="simple">
+<li>web.py版 <a class="reference external" href="http://simple-is-better.com/news/309">http://simple-is-better.com/news/309</a></li>
+<li>Uliweb版 <a class="reference external" href="http://limodou.github.com/uliweb-doc/basic.html">http://limodou.github.com/uliweb-doc/basic.html</a></li>
+<li>Bottle版 <a class="reference external" href="https://bitbucket.org/ZoomQuiet/bottle-simple-tod">https://bitbucket.org/ZoomQuiet/bottle-simple-tod</a></li>
+</ul>
+<p>TODO具备的功能：</p>
+<ul class="simple">
+<li>实现任务的追加，修改，删除功能。</li>
+<li>完成或重置任务功能。</li>
+</ul>
+<p>使用了 <a class="reference external" href="http://packages.python.org/Flask-SQLAlchemy/">Flask-SQLAlchemy</a> 扩展，数据库用的是 <tt class="docutils literal"><span class="pre">sqlite</span></tt> ，为因为他很小型，在做开发的时候用着不错。下面就开始一步步的构建这个程序。</p>
+</div>
+<div class="section" id="id1">
+<h1>初始准备：创建目录<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p>web应用，多不是一个单一的程序就能解决问题的，创建一个目录，将所有内容放在这个目录中，方便管理。本应用目录为：:</p>
+<div class="highlight-python"><pre>/todo
+   /static
+   /templates</pre>
+</div>
+<p><tt class="docutils literal"><span class="pre">static</span></tt> 目录用于存放如img、js、css等文件，这些文件能通过HTTP直接访问， <tt class="docutils literal"><span class="pre">templates</span></tt> 用于存放Flask应用所需要的 <tt class="docutils literal"><span class="pre">jinja2</span></tt> 模板文件。我们把所有的模板文件都放在此目录中。</p>
+</div>
+<div class="section" id="id2">
+<h1>构建应用程序代码<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h1>
+<p>当我们准备好了应用的模式后，就可以创建应用的模块了。本例中，我把它叫做 <tt class="docutils literal"><span class="pre">todo.py</span></tt> ，并把它放在 todo 目录中。首先我们要导入一些Flash必用的模块和配置。如果是一个小应用的话，配置可直接放在模块中，如果应用比较大，可使用单独的文件进行配置，然后再导入主模块中即可。</p>
+<div class="section" id="id3">
+<h2>导入模块<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+</pre></div>
+</div>
+<p>这里只导入了一个 <tt class="docutils literal"><span class="pre">Flask</span></tt> 模块，只需要这个一个模块，程序就能运行起来了，当然对于更复杂的应用，光这一个模块是不够的，待会遇到之时，我们再进行导入。</p>
+</div>
+<div class="section" id="id4">
+<h2>配置<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">DEBUG</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">SECRET_KEY</span> <span class="o">=</span> <span class="s">&#39;secret_key&#39;</span>
+</pre></div>
+</div>
+<p>配置选项一，开启服务器的debug支持，每次修改服务器都会自动重启，如果出现问题的话，还会提供一个有用的调试器。Debug标志用来指示是否开启交互debugger。永远不要在生产环境下开始 debug标志，因为这样会允许用户在服务器上执行代码！</p>
+<p>配置选项二，我们需要设置 secret_key 来确保客户端Session的安全。合理的设置这个值，而且越复杂越好。Python中的 <tt class="docutils literal"><span class="pre">os.urandom</span></tt> 可方便获得：</p>
+<div class="highlight-python"><pre>In [1]: import os
+In [2]: os.urandom(24)
+Out[2]: '7\xe9\xcf\x17\x11\x92I^"|\xbc\x85\xc8\xc1u\x18\xbb\xec\xc9\xe2\xbb,\x9fX'</pre>
+</div>
+<p>将产生的字符串复制替换掉 <tt class="docutils literal"><span class="pre">secret_key</span></tt> 即可</p>
+</div>
+<div class="section" id="id5">
+<h2>配置初始化<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>由于只是一个小应用，初始化我们放在同一文件中完成</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">from_object</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">from_object</span></tt> 会识别给出的对象（如果是一个字符串，它会自动导入这个模块），然后查找所有已定义的大写变量。在我们这个例子里，配置在几行代码前。你也可以把它移动到一个单独的文件中。</p>
+</div>
+<div class="section" id="id6">
+<h2>开启服务器<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<p>要启动服务器，在最后加入这样的代码：:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>现在就能启动服务器了：:</p>
+<div class="highlight-python"><pre>python todo.py</pre>
+</div>
+<p>启动后的提示是这样的：:</p>
+<div class="highlight-python"><pre>* Running on http://127.0.0.1:5000/
+* Restarting with reloader...</pre>
+</div>
+<p>这时就能在浏览器中打开这个网址了，不过此时访问服务器，你会得到一个404页面没找到的错误。因为我们还没有创建视图。</p>
+</div>
+<div class="section" id="id7">
+<h2>第一步代码<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<p>第一步后，代码像这样：</p>
+<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
+<span class="c">#coding:utf-8</span>
+
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">SECRET_KEY</span> <span class="o">=</span> <span class="s">&#39;7</span><span class="se">\xe9\xcf\x17\x11\x92</span><span class="s">I^&quot;|</span><span class="se">\xbc\x85\xc8\xc1</span><span class="s">u</span><span class="se">\x18\xbb\xec\xc9\xe2\xbb</span><span class="s">,</span><span class="se">\x9f</span><span class="s">X&#39;</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">from_object</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+</div>
+<div class="section" id="id8">
+<h1>创建数据库<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h1>
+<p>创建数据库，分为三步： 配置数据库，初始化数据库和数据库模型，这里以 <a class="reference external" href="http://packages.python.org/Flask-SQLAlchemy/">Flask-SQLAlchemy</a> 为例。</p>
+<div class="section" id="id9">
+<h2>配置<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<p>配置数据库，只需要模块的配置部分加入下面这行代码：:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">SQLALCHEMY_DATABASE_URI</span> <span class="o">=</span> <span class="s">&#39;sqlite:///todo.sqlite&#39;</span>
+</pre></div>
+</div>
+<p>这是一个关于 sqlite 的配置，其它配置，可参看 <a class="reference external" href="http://packages.python.org/Flask-SQLAlchemy/config.html#connection-uri-format">这里</a> 。</p>
+</div>
+<div class="section" id="id11">
+<h2>创建数据库实例<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">SQLAlchemy</span></tt> 模块导入：:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">flaskext.sqlalchemy</span> <span class="kn">import</span> <span class="n">SQLAlchemy</span>
+</pre></div>
+</div>
+<p>在前面的 <tt class="docutils literal"><span class="pre">app</span></tt> 配置后面加入下面两行代码：:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">db</span> <span class="o">=</span> <span class="n">SQLAlchemy</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+<span class="n">db</span><span class="o">.</span><span class="n">init_app</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id12">
+<h2>创建数据模型<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
+<p>数据模型：:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Todo</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;数据模型&#39;&#39;&#39;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">posted_on</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Date</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(),</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>模型型初始化：:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Todo</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">&quot;&lt;Todo &#39;</span><span class="si">%s</span><span class="s">&#39;&gt;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span>
+</pre></div>
+</div>
+<p>模型增补数据操作功能：:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">store_to_db</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;保存数据到数据库&#39;&#39;&#39;</span>
+
+    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">delete_todo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;删除数据&#39;&#39;&#39;</span>
+
+    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id13">
+<h2>初始化数据库<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
+<p>进入python命令行，然后：:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">todo</span> <span class="kn">import</span> <span class="n">db</span>
+<span class="n">db</span><span class="o">.</span><span class="n">create_all</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>如果没问题的话，你可以在当前目录中看到数据库文件了。如果需要重建数据表，可使用 <tt class="docutils literal"><span class="pre">db.drop_all()</span></tt> 清除数据。</p>
+</div>
+<div class="section" id="id14">
+<h2>第二步代码<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h2>
+<p>第二步后，代码像这样：</p>
+<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44</pre></div></td><td class="code"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
+<span class="c">#coding:utf-8</span>
+
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flaskext.sqlalchemy</span> <span class="kn">import</span> <span class="n">SQLAlchemy</span>
+
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">SECRET_KEY</span> <span class="o">=</span> <span class="s">&#39;7</span><span class="se">\xe9\xcf\x17\x11\x92</span><span class="s">I^&quot;|</span><span class="se">\xbc\x85\xc8\xc1</span><span class="s">u</span><span class="se">\x18\xbb\xec\xc9\xe2\xbb</span><span class="s">,</span><span class="se">\x9f</span><span class="s">X&#39;</span>
+<span class="n">SQLALCHEMY_DATABASE_URI</span> <span class="o">=</span> <span class="s">&#39;sqlite:///todo.sqlite&#39;</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">from_object</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">SQLAlchemy</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+<span class="n">db</span><span class="o">.</span><span class="n">init_app</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Todo</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;数据模型&#39;&#39;&#39;</span>
+    
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">posted_on</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Date</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(),</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Todo</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;&lt;Todo &#39;</span><span class="si">%s</span><span class="s">&#39;&gt;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span>
+
+    <span class="k">def</span> <span class="nf">store_to_db</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;保存数据到数据库&#39;&#39;&#39;</span>
+        
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">delete_todo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;删除数据&#39;&#39;&#39;</span>
+        
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+</div>
+<div class="section" id="id15">
+<h1>表单<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h1>
+<p>表单引入模块：:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">flaskext.wtf</span> <span class="kn">import</span> <span class="n">Form</span><span class="p">,</span> <span class="n">TextField</span><span class="p">,</span> <span class="n">SubmitField</span><span class="p">,</span> <span class="n">required</span><span class="p">,</span> <span class="n">ValidationError</span>
+</pre></div>
+</div>
+<p>表单代码：:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">TodoForm</span><span class="p">(</span><span class="n">Form</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;表单&#39;&#39;&#39;</span>
+
+    <span class="n">title</span> <span class="o">=</span> <span class="n">TextField</span><span class="p">(</span><span class="s">u&quot;内容&quot;</span><span class="p">,</span> <span class="n">validators</span><span class="o">=</span><span class="p">[</span><span class="n">required</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s">u&quot;任务内容&quot;</span><span class="p">)])</span>
+</pre></div>
+</div>
+<p>只是一个表单，当然也可以直接放到html中.定义好的表单，可用如下方式进行调用：:</p>
+<div class="highlight-python"><pre>{{ form.title.label }} {{ form.title }}</pre>
+</div>
+<p>将其写入HTML的 <tt class="docutils literal"><span class="pre">&lt;form&gt;&lt;/form</span></tt> 即可。</p>
+</div>
+<div class="section" id="id16">
+<h1>视图<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h1>
+<p>现在数据库连接已能正常工作了，这步就开始写视图函数。五个功能视图及一个404视图。</p>
+<div class="section" id="route">
+<h2>route<a class="headerlink" href="#route" title="Permalink to this headline">¶</a></h2>
+<p>装饰器 <tt class="docutils literal"><span class="pre">flask.Flask.route</span></tt> 用于绑定一个函数到一个网址。但是它不仅仅只有这些!你可以构造动态的网址并给函数附加多个规则.</p>
+<p>这里是一个例子：:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">index</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">&#39;Index Page&#39;</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/hello&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">hello</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">&#39;Hello World&#39;</span>
+</pre></div>
+</div>
+<p>一个函数可对应我个视图。如 <tt class="docutils literal"><span class="pre">index</span></tt> 视图，也可以再加个 <tt class="docutils literal"><span class="pre">&#64;app.route('/index')</span></tt> ,这样 <tt class="docutils literal"><span class="pre">/</span></tt> 和 <tt class="docutils literal"><span class="pre">/index</span></tt> 都会调用 <tt class="docutils literal"><span class="pre">index</span></tt> 函数。每个视力都必须 <tt class="docutils literal"><span class="pre">return</span></tt> 语句返回调用。</p>
+</div>
+<div class="section" id="id17">
+<h2>主视图<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h2>
+<p>主视图代码如下：</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">,</span> <span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">index</span><span class="p">():</span>
+    <span class="n">todo</span> <span class="o">=</span> <span class="n">Todo</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&#39;-id&#39;</span><span class="p">)</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">TodoForm</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span> <span class="ow">and</span> <span class="n">form</span><span class="o">.</span><span class="n">validate_on_submit</span><span class="p">():</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">Todo</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">store_to_db</span><span class="p">()</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s">u&quot;添加成功&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;next&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">url_for</span><span class="p">(</span><span class="s">&#39;index&#39;</span><span class="p">))</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s">u&#39;存储失败！&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;index.html&#39;</span><span class="p">,</span> <span class="n">todo</span><span class="o">=</span><span class="n">todo</span><span class="p">,</span> <span class="n">form</span><span class="o">=</span><span class="n">form</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id18">
+<h2>编辑视图<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/&lt;int:id&gt;/edit&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">,</span> <span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">edit</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+    <span class="n">todo</span> <span class="o">=</span> <span class="n">Todo</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">TodoForm</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">todo</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span> <span class="ow">and</span> <span class="n">form</span><span class="o">.</span><span class="n">validate_on_submit</span><span class="p">():</span>
+        <span class="n">Todo</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">Todo</span><span class="o">.</span><span class="n">title</span><span class="p">:</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;title&#39;</span><span class="p">]})</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s">u&quot;记录编辑成功&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;index&#39;</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;edit.html&#39;</span><span class="p">,</span> <span class="n">todo</span><span class="o">=</span><span class="n">todo</span><span class="p">,</span> <span class="n">form</span><span class="o">=</span><span class="n">form</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id19">
+<h2>删除视图<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">tdel</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+    <span class="n">todo</span> <span class="o">=</span> <span class="n">Todo</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">todo</span><span class="p">:</span>
+        <span class="n">todo</span><span class="o">.</span><span class="n">delete_todo</span><span class="p">()</span>
+    <span class="n">flash</span><span class="p">(</span><span class="s">u&quot;记录删除成功&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;index&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id20">
+<h2>完成视图<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><pre>@app.route('/&lt;int:id&gt;/done')
+    def done(id):
+    todo = Todo.query.filter_by(id=id).first()
+    if todo:
+        Todo.query.filter_by(id=id).update({Todo.status:True})
+        db.session.commit()
+        flash(u"任务完成")
+
+    return redirect(url_for('index'))</pre>
+</div>
+</div>
+<div class="section" id="id21">
+<h2>重置视图<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/&lt;int:id&gt;/redo&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">redo</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+    <span class="n">todo</span> <span class="o">=</span> <span class="n">Todo</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">todo</span><span class="p">:</span>
+        <span class="n">Todo</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">Todo</span><span class="o">.</span><span class="n">status</span><span class="p">:</span><span class="bp">False</span><span class="p">})</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s">u&quot;记录重置成功&quot;</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;index&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id22">
+<h2>404视图<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@app.errorhandler</span><span class="p">(</span><span class="mi">404</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">page_not_found</span><span class="p">(</span><span class="n">error</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;page_404.html&#39;</span><span class="p">),</span> <span class="mi">404</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id23">
+<h2>整个代码<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112</pre></div></td><td class="code"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
+<span class="c">#coding:utf-8</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">render_template</span><span class="p">,</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">flash</span><span class="p">,</span> <span class="n">request</span>
+<span class="kn">from</span> <span class="nn">flaskext.sqlalchemy</span> <span class="kn">import</span> <span class="n">SQLAlchemy</span>
+<span class="kn">from</span> <span class="nn">flaskext.wtf</span> <span class="kn">import</span> <span class="n">Form</span><span class="p">,</span> <span class="n">TextField</span><span class="p">,</span> <span class="n">SubmitField</span><span class="p">,</span> <span class="n">required</span><span class="p">,</span> <span class="n">ValidationError</span>
+
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">SECRET_KEY</span> <span class="o">=</span> <span class="s">&#39;7</span><span class="se">\xe9\xcf\x17\x11\x92</span><span class="s">I^&quot;|</span><span class="se">\xbc\x85\xc8\xc1</span><span class="s">u</span><span class="se">\x18\xbb\xec\xc9\xe2\xbb</span><span class="s">,</span><span class="se">\x9f</span><span class="s">X&#39;</span>
+<span class="n">SQLALCHEMY_DATABASE_URI</span> <span class="o">=</span> <span class="s">&#39;sqlite:///todo.sqlite&#39;</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">from_object</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">SQLAlchemy</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+<span class="n">db</span><span class="o">.</span><span class="n">init_app</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Todo</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;数据模型&#39;&#39;&#39;</span>
+    
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">posted_on</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Date</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Boolean</span><span class="p">(),</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Todo</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;&lt;Todo &#39;</span><span class="si">%s</span><span class="s">&#39;&gt;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span>
+
+    <span class="k">def</span> <span class="nf">store_to_db</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;保存数据到数据库&#39;&#39;&#39;</span>
+        
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">delete_todo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;删除数据&#39;&#39;&#39;</span>
+        
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">TodoForm</span><span class="p">(</span><span class="n">Form</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;表单&#39;&#39;&#39;</span>
+    
+    <span class="n">title</span> <span class="o">=</span> <span class="n">TextField</span><span class="p">(</span><span class="s">u&quot;内容&quot;</span><span class="p">,</span> <span class="n">validators</span><span class="o">=</span><span class="p">[</span><span class="n">required</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s">u&quot;任务内容&quot;</span><span class="p">)])</span>
+    <span class="c">#submit = SubmitField(u&quot;Add&quot;)</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">,</span> <span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">index</span><span class="p">():</span>
+    <span class="n">todo</span> <span class="o">=</span> <span class="n">Todo</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&#39;-id&#39;</span><span class="p">)</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">TodoForm</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span> <span class="ow">and</span> <span class="n">form</span><span class="o">.</span><span class="n">validate_on_submit</span><span class="p">():</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">Todo</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">store_to_db</span><span class="p">()</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s">u&quot;添加成功&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;next&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">url_for</span><span class="p">(</span><span class="s">&#39;index&#39;</span><span class="p">))</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s">u&#39;存储失败！&#39;</span><span class="p">)</span>
+            
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;index.html&#39;</span><span class="p">,</span> <span class="n">todo</span><span class="o">=</span><span class="n">todo</span><span class="p">,</span> <span class="n">form</span><span class="o">=</span><span class="n">form</span><span class="p">)</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/&lt;int:id&gt;/del&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">tdel</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+    <span class="n">todo</span> <span class="o">=</span> <span class="n">Todo</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">todo</span><span class="p">:</span>
+        <span class="n">todo</span><span class="o">.</span><span class="n">delete_todo</span><span class="p">()</span>
+    <span class="n">flash</span><span class="p">(</span><span class="s">u&quot;记录删除成功&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;index&#39;</span><span class="p">))</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/&lt;int:id&gt;/edit&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">,</span> <span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">edit</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+    <span class="n">todo</span> <span class="o">=</span> <span class="n">Todo</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">TodoForm</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">todo</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span> <span class="ow">and</span> <span class="n">form</span><span class="o">.</span><span class="n">validate_on_submit</span><span class="p">():</span>
+        <span class="n">Todo</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">Todo</span><span class="o">.</span><span class="n">title</span><span class="p">:</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;title&#39;</span><span class="p">]})</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s">u&quot;记录编辑成功&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;index&#39;</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;edit.html&#39;</span><span class="p">,</span> <span class="n">todo</span><span class="o">=</span><span class="n">todo</span><span class="p">,</span> <span class="n">form</span><span class="o">=</span><span class="n">form</span><span class="p">)</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/&lt;int:id&gt;/done&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">done</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+    <span class="n">todo</span> <span class="o">=</span> <span class="n">Todo</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">todo</span><span class="p">:</span>
+        <span class="n">Todo</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">Todo</span><span class="o">.</span><span class="n">status</span><span class="p">:</span><span class="bp">True</span><span class="p">})</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s">u&quot;任务完成&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;index&#39;</span><span class="p">))</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/&lt;int:id&gt;/redo&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">redo</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+    <span class="n">todo</span> <span class="o">=</span> <span class="n">Todo</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">todo</span><span class="p">:</span>
+        <span class="n">Todo</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">Todo</span><span class="o">.</span><span class="n">status</span><span class="p">:</span><span class="bp">False</span><span class="p">})</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s">u&quot;记录重置成功&quot;</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;index&#39;</span><span class="p">))</span>
+
+<span class="nd">@app.errorhandler</span><span class="p">(</span><span class="mi">404</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">page_not_found</span><span class="p">(</span><span class="n">error</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;page_404.html&#39;</span><span class="p">),</span> <span class="mi">404</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+</div>
+<div class="section" id="id24">
+<h1>模版<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="base-html">
+<h2>base.html<a class="headerlink" href="#base-html" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><pre>&lt;?xml version="1.0" encoding="UTF-8"?&gt; 
+&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"&gt;
+&lt;html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"&gt;
+&lt;head&gt;
+	&lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /&gt;
+	&lt;title&gt;任务追踪 (Flask版) 简明TODO&lt;/title&gt;&lt;/title&gt;
+	&lt;script type="text/javascript" src="http://img3.douban.com/js/packed_jquery.min9556435062.js"&gt;&lt;/script&gt;  
+    &lt;link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css" /&gt;
+    &lt;script type="text/javascript"&gt;  
+        $(document).ready(function()  
+        {  
+            $("#divPop")  
+            .animate(  
+            {  
+                "opacity": "hide",  
+                "width": 800,  
+                "height":30 
+            },  
+            1500  
+            );  
+        });  
+    &lt;/script&gt;  
+&lt;/head&gt;
+&lt;body class="page"&gt;
+
+&lt;h1&gt;= 任务追踪 (Flask版) = &lt;/h1&gt;
+&lt;hr&gt;
+
+{% block content %} {% endblock %}
+&lt;br /&gt;
+{% for message in get_flashed_messages() %}
+  &lt;div id="divPop" style="background-color: #f0f0f0; border: solid 1px #000000;width: 800px; height: 30px;"&gt;&lt;div style="text-align:center;"&gt;{{ message }}&lt;/div&gt;&lt;/div&gt;
+{% endfor %}
+&lt;!-- footer --&gt;
+&lt;hr&gt;
+&lt;div id="poweredby"&gt;
+Copyright (c) 2011 wwq0327. powered by: &lt;a href="http://python.org"&gt;python&lt;/a&gt;, &lt;a href="http://flask.pocoo.org/"&gt;flask&lt;/a&gt; . &lt;a href="https://bitbucket.org/wwq0327/flask-simple-todo"&gt;工程地址&lt;/a&gt;
+&lt;/div&gt;
+&lt;br /&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+</div>
+</div>
+<div class="section" id="index-html">
+<h2>index.html<a class="headerlink" href="#index-html" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><pre>{% extends "base.html" %}
+{% block content %}
+
+&lt;h2&gt;== 待办 ==&lt;/h2&gt;
+{% if todo %}
+    &lt;ol&gt;
+    {% for t in todo %}
+    {% if t.status==False %}
+            &lt;li&gt;{{ t.title|safe }} &lt;sup&gt;:: &lt;a href="/{{ t.id }}/del" &gt;删除&lt;/a&gt; | &lt;a href="/{{ t.id }}/edit"&gt; 修改&lt;/a&gt; | 
+            &lt;a href="/{{ t.id }}/done" &gt;完成&lt;/a&gt;&lt;/sup&gt; &lt;/li&gt;
+    {% endif %}
+    {% endfor %}
+    &lt;/ol&gt;
+{% else %}
+    &lt;b&gt;暂时无记录&lt;/b&gt;
+{% endif %}
+&lt;h2&gt;== 完成 ==&lt;/h2&gt;
+{% if todo %}
+    &lt;ol&gt;
+    {% for t in todo %}
+    {% if t.status==True %}
+    &lt;li&gt;&lt;del&gt;{{ t.title|safe }}&lt;/del&gt; &lt;sup&gt;:: &lt;a href="/{{ t.id }}/del" &gt;删除&lt;/a&gt; | &lt;a href="/{{ t.id }}/redo" &gt;重置&lt;/a&gt;&lt;/sup&gt; &lt;/li&gt;
+    {% endif %}
+    {% endfor %}
+    &lt;/ol&gt;
+{% else %}
+    &lt;b&gt;暂时无记录&lt;/b&gt;
+{% endif %}
+&lt;h2&gt; == 追加 ==&lt;/h2&gt;
+&lt;form action="." method="post"&gt;
+{{ form.csrf }}
+{{ form.title(size=100) }}
+&lt;button type="submit"&gt;更新&lt;/button&gt;
+&lt;/form&gt;
+{% endblock %}</pre>
+</div>
+</div>
+<div class="section" id="edit-html">
+<h2>edit.html<a class="headerlink" href="#edit-html" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><pre>{% extends "base.html" %}
+{% block content %}
+&lt;h2&gt; == 修改 ==&lt;/h2&gt;
+&lt;form action="/{{ todo.id }}/edit" method="post"&gt;
+{{ form.csrf }}
+{{ form.title(size=100) }}
+&lt;button type="submit"&gt;更新&lt;/button&gt;
+&lt;/form&gt;
+{% endblock %}</pre>
+</div>
+</div>
+<div class="section" id="page-404-html">
+<h2>page_404.html<a class="headerlink" href="#page-404-html" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><pre>{% extends "base.html" %}
+{% block content %} &lt;p align="center"&gt;&lt;b&gt;页面未找到!&lt;/b&gt;, 请&lt;a href="{{url_for('index')}}" &gt;返回&lt;/a&gt;&lt;/p&gt; {% endblock %}</pre>
+</div>
+</div>
+</div>
+<div class="section" id="id25">
+<h1>增加页面样式<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-python"><pre>body { background: #fefefe; color: #343434; margin: 1em; padding: 0; font-size:105%;}
+img { border: none }
+a {
+    color: #185DA0;
+    background: inherit;
+}
+
+a:hover {
+    color: #9EC068;
+    background: inherit;
+}
+
+h2 a {
+     text-decoration: none;
+}
+   
+.page {
+    margin: 2em auto; width: 70em; border: 3px dashed #ccc;
+    padding: 1em; background: white;
+}
+   
+hr {
+      width : 100%;
+      height : 2px;
+      background : #efefef;
+      border : 1px solid #ddd;
+      clear : both;
+ }
+  div#poweredby{
+  float : right;
+  font-size: 0.8em;
+  }
+  li {font-size:120%;
+  margin-left: 2em;
+  border-bottom:1px dotted #aaa;
+  width:90%;
+  padding-top: 10px;
+  }
+  del {font-size:95%; color:#555;}
+  sub,sup {font-size:10px;}
+  /*from 42qu.com*/
+  input{  font-size:18px;line-height:22px;height:26px;
+  padding:1px 3px;
+  border:1px solid #ddd;
+  width:37em;
+  }
+
+  button {    
+  font-weight:normal;color:#444;
+  font-size:16px;line-height:22px;height:28px;
+  text-decoration:center;
+  width:50px;overflow:visible;
+  margin:0;
+  padding:1px 3px;
+  background-color:#feeefe;
+  border:1px solid #ddd;
+  cursor:pointer;
+  }
+  button:hover{
+  background-color:#fff;border:1px solid #aaa;color:#000
+  -moz-box-shadow:-2px 2px 2px #ccc;
+  box-shadow:-2px 2px 2px #ccc;
+  -webkit-box-shadow:-2px 2px 2px #ccc;
+  }
+  .flash 
+  { background: #fff; padding: 0.5em;
+border: 1px solid #ccc; 
+  }</pre>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to Todo for Flask&#8217;s documentation!</a></li>
+<li><a class="reference internal" href="#todo">介绍 Todo</a></li>
+<li><a class="reference internal" href="#id1">初始准备：创建目录</a></li>
+<li><a class="reference internal" href="#id2">构建应用程序代码</a><ul>
+<li><a class="reference internal" href="#id3">导入模块</a></li>
+<li><a class="reference internal" href="#id4">配置</a></li>
+<li><a class="reference internal" href="#id5">配置初始化</a></li>
+<li><a class="reference internal" href="#id6">开启服务器</a></li>
+<li><a class="reference internal" href="#id7">第一步代码</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id8">创建数据库</a><ul>
+<li><a class="reference internal" href="#id9">配置</a></li>
+<li><a class="reference internal" href="#id11">创建数据库实例</a></li>
+<li><a class="reference internal" href="#id12">创建数据模型</a></li>
+<li><a class="reference internal" href="#id13">初始化数据库</a></li>
+<li><a class="reference internal" href="#id14">第二步代码</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id15">表单</a></li>
+<li><a class="reference internal" href="#id16">视图</a><ul>
+<li><a class="reference internal" href="#route">route</a></li>
+<li><a class="reference internal" href="#id17">主视图</a></li>
+<li><a class="reference internal" href="#id18">编辑视图</a></li>
+<li><a class="reference internal" href="#id19">删除视图</a></li>
+<li><a class="reference internal" href="#id20">完成视图</a></li>
+<li><a class="reference internal" href="#id21">重置视图</a></li>
+<li><a class="reference internal" href="#id22">404视图</a></li>
+<li><a class="reference internal" href="#id23">整个代码</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id24">模版</a><ul>
+<li><a class="reference internal" href="#base-html">base.html</a></li>
+<li><a class="reference internal" href="#index-html">index.html</a></li>
+<li><a class="reference internal" href="#edit-html">edit.html</a></li>
+<li><a class="reference internal" href="#page-404-html">page_404.html</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id25">增加页面样式</a></li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="#">flask-simple-todo v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, wwq0327.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+    </div>
+  </body>
+</html>
